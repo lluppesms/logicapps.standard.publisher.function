@@ -146,10 +146,10 @@ module functionAppSettingsModule 'functionappsettings.bicep' = {
     functionStorageAccountName: functionModule.outputs.functionStorageAccountName
     functionInsightsKey: functionModule.outputs.functionInsightsKey
     customAppSettings: {
-      AzDoOrganizationReference: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=AzDoOrganization)'
-      AzDoPatTokenReference: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=AzDoPatToken)'
-      AzDoProjectReference: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=AzDoProject)'
-      RefreshPipelineNameReference: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=RefreshPipelineName)'
+      AzDoOrganization: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=AzDoOrganization)'
+      AzDoPatToken: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=AzDoPatToken)'
+      AzDoProject: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=AzDoProject)'
+      RefreshPipelineName: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=RefreshPipelineName)'
     }
   }
 }
