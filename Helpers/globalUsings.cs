@@ -1,4 +1,5 @@
-﻿global using Microsoft.AspNetCore.Mvc;
+﻿global using LogicPublisher.Models;
+global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.Mvc.Formatters.Internal;
 global using Microsoft.Azure.WebJobs;
 global using Microsoft.Azure.WebJobs.Extensions.Http;

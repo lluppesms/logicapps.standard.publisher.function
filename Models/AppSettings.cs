@@ -1,4 +1,4 @@
-﻿namespace LogicPublisher;
+﻿namespace LogicPublisher.Models;
 
 public class AppSettings
 {
@@ -6,11 +6,11 @@ public class AppSettings
     public string AzDoPatToken { get; set; }
     public string AzDoProject { get; set; }
     public string RefreshPipelineName { get; set; }
-    
+
     public AppSettings()
     {
     }
-    
+
     public bool ReadSettings()
     {
         if (string.IsNullOrEmpty(AzDoOrganization))
