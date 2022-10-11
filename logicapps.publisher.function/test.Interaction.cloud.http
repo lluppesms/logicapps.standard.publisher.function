@@ -1,15 +1,17 @@
 # Install Extension Rest-Client to use this file
 #   https://github.com/Huachao/vscode-restclient
 
-@baseUrl = https://lll-durable-demo.azurewebsites.net/api
+@baseUrl = https://lll-laspub-func-demo.azurewebsites.net/api
 
 ### Start Orchestration
 # @name startWorkRequest
 
-POST {{baseUrl}}/Interaction_Trigger HTTP/1.1
-content-type: text/plain
+POST {{baseUrl}}/TriggerRefreshPipeline HTTP/1.1
 
-9522376401
+
+# content-type: text/plain
+
+# 9522376401
 
 ### ---------------------------------------------------------------------------
 ### Look at the response of the previous request and go get the "sendEventPostUri"

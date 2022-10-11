@@ -61,6 +61,10 @@ jobs:
       echo "functionAppSkuFamily=$(functionAppSkuFamily)"
       echo "functionAppSkuTier=$(functionAppSkuTier)"
       echo "keyVaultOwnerUserId1=$(keyVaultOwnerUserId1)"
+      echo "azDoOrganization $(azDoOrganization)"
+      echo "azDoPatToken $(azDoPatToken)"
+      echo "azDoProject $(azDoProject)"
+      echo "refreshPipelineName $(refreshPipelineName)"
       echo "runDateTime=$(runDateTime)"
       echo "templateFile=$(templateFile)"
     displayName: 'Display Variables'
@@ -101,6 +105,10 @@ jobs:
         -functionAppSkuFamily $(functionAppSkuFamily)
         -functionAppSkuTier $(functionAppSkuTier)
         -keyVaultOwnerUserId1 $(keyVaultOwnerUserId1)
+        -azDoOrganization $(azDoOrganization)
+        -azDoPatToken $(azDoPatToken)
+        -azDoProject $(azDoProject)
+        -refreshPipelineName $(refreshPipelineName)
         -runDateTime $(runDateTime)
       deploymentScope: 'Resource Group'
       azureResourceManagerConnection: '$(subscriptionName)'

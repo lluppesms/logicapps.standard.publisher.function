@@ -41,4 +41,8 @@ To create these variable groups, customize and run this command in the Azure Clo
          serviceConnectionName='<yourServiceConnectionName>' 
          subscriptionId='<yourSubscriptionId>' 
          subscriptionName='<yourAzureSubscriptionName>' 
+         azDoOrganization='<Azure DevOps Organization Name>'
+         azDoPatToken'<Azure DevOps PAT Token>'
+         azDoProject'<Azure DevOps Project Name>'
+         refreshPipelineName'<Azure DevOps Refresh Pipeline Name>'
 ```

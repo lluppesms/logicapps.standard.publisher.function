@@ -6,10 +6,12 @@
 ### Start Orchestration
 # @name startWorkRequest
 
-POST {{baseUrl}}/Interaction_Trigger HTTP/1.1
-content-type: text/plain
+POST {{baseUrl}}/TriggerRefreshPipeline HTTP/1.1
 
-+19522376401
+
+# content-type: text/plain
+
+# +19522376401
 
 ### ---------------------------------------------------------------------------
 ### Look at the response of the previous request to find the status URL, and then 

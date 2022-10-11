@@ -20,6 +20,10 @@ param functionAppSku string = 'Y1'
 param functionAppSkuFamily string = 'Y'
 param functionAppSkuTier string = 'Dynamic'
 param keyVaultOwnerUserId1 string = ''
+param azDoOrganization string = ''
+param azDoPatToken string = ''
+param azDoProject string = ''
+param refreshPipelineName string = ''
 param runDateTime string = utcNow()
 
 // --------------------------------------------------------------------------------
@@ -96,14 +100,56 @@ module keyVaultSecret2 'keyvaultsecretstorageconnection.bicep' = {
     storageAccountName: storageModule.outputs.storageAccountName
   }
 }
+module keyVaultSecret3 'keyvaultsecret.bicep' = {
+  name: 'keyVaultSecret3${deploymentSuffix}'
+  dependsOn: [ keyVaultModule, functionModule ]
+  params: {
+    keyVaultName: keyVaultModule.outputs.keyVaultName
+    secretName: 'AzDoOrganization'
+    secretValue: azDoOrganization
+  }
+}
+module keyVaultSecret4 'keyvaultsecret.bicep' = {
+  name: 'keyVaultSecret4${deploymentSuffix}'
+  dependsOn: [ keyVaultModule, functionModule ]
+  params: {
+    keyVaultName: keyVaultModule.outputs.keyVaultName
+    secretName: 'AzDoPatToken'
+    secretValue: azDoPatToken
+  }
+}
+module keyVaultSecret5 'keyvaultsecret.bicep' = {
+  name: 'keyVaultSecret5${deploymentSuffix}'
+  dependsOn: [ keyVaultModule, functionModule ]
+  params: {
+    keyVaultName: keyVaultModule.outputs.keyVaultName
+    secretName: 'AzDoProject'
+    secretValue: azDoProject
+  }
+}
+module keyVaultSecret6 'keyvaultsecret.bicep' = {
+  name: 'keyVaultSecret6${deploymentSuffix}'
+  dependsOn: [ keyVaultModule, functionModule ]
+  params: {
+    keyVaultName: keyVaultModule.outputs.keyVaultName
+    secretName: 'RefreshPipelineName'
+    secretValue: refreshPipelineName
+  }
+}
+
+
 module functionAppSettingsModule 'functionappsettings.bicep' = {
   name: 'functionAppSettings${deploymentSuffix}'
-  dependsOn: [ keyVaultSecret1, keyVaultSecret2, functionModule ]
+  dependsOn: [ keyVaultSecret1, keyVaultSecret2, keyVaultSecret3, keyVaultSecret4, keyVaultSecret5, keyVaultSecret6, functionModule ]
   params: {
     functionAppName: functionModule.outputs.functionAppName
     functionStorageAccountName: functionModule.outputs.functionStorageAccountName
     functionInsightsKey: functionModule.outputs.functionInsightsKey
     customAppSettings: {
+      AzDoOrganizationReference: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=AzDoOrganization)'
+      AzDoPatTokenReference: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=AzDoPatToken)'
+      AzDoProjectReference: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=AzDoProject)'
+      RefreshPipelineNameReference: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=RefreshPipelineName)'
     }
   }
 }
