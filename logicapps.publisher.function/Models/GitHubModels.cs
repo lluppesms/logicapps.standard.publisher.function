@@ -11,14 +11,14 @@ namespace LogicPublisher.Models;
 
 public class GitHubPullRequest
 {
-    public long Id { get; set; }
+    public int Number { get; set; }
     public string Title { get; set; }
     public GitHubPullRequest()
     {
     }
-    public GitHubPullRequest(long Id, string title)
+    public GitHubPullRequest(int number, string title)
     {
-        this.Id = Id;
+        this.Number = number;
         this.Title = title;
     }
 }

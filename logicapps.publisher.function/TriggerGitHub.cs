@@ -2,6 +2,25 @@ namespace LogicPublisher;
 
 public static class TriggerGitHubProxy
 {
+    [FunctionName("TriggerGitHubApprovePullRequest")]
+    public static async Task<IActionResult> ApprovePullRequest([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, ILogger log)
+    {
+        log.LogInformation("GitHub GetPullRequests received an HTTP trigger.");
+        var settings = new AppSettings();
+        if (settings.IsValid())
+        {
+            var pullRequestId = Common.ParseIntegerFromRequest(req, "id");
+            if (pullRequestId > 0) {
+                var mergeRequest = await GitHubFunctions.ApprovePullRequest(pullRequestId, settings, log);
+                if (mergeRequest != null) {
+                    log.LogInformation($"GitHub ApprovePullRequest returned Merged: {mergeRequest.Merged} Message: {mergeRequest.Message}!");
+                    return new OkObjectResult(mergeRequest);
+                }
+            }
+        }
+        return new BadRequestResult();
+    }
+
     [FunctionName("TriggerGitHubGetPullRequests")]
     public static async Task<IActionResult> GetPullRequests([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, ILogger log)
     {
@@ -28,7 +47,7 @@ public static class TriggerGitHubProxy
             var pr = await GitHubFunctions.GetFirstPullRequest(settings, log);
             if (pr != null)
             {
-                log.LogInformation($"GitHub First Pull Request Results: {pr.Id} : {pr.Title}");
+                log.LogInformation($"GitHub First Pull Request Results: {pr.Number} : {pr.Title}");
                 return new OkObjectResult(pr);
             }
         }

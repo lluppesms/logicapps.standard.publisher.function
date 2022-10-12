@@ -1,8 +1,13 @@
+using Microsoft.TeamFoundation.Build.WebApi;
+using Microsoft.TeamFoundation.Core.WebApi;
+using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.WebApi;
+
 namespace LogicPublisher;
 
 public static class PipelineFunctions
 {
-    public static async Task<IActionResult> TriggerPipelineExecution(AppSettings settings, ILogger log)
+    public static async Task<IActionResult> RunPipeline(AppSettings settings, ILogger log)
     {
         log.LogInformation($"Starting PipelineExecution.TriggerPipeline for {settings.AzDoOrganization}/{settings.AzDoProject}/{settings.RefreshPipelineName}");
         try

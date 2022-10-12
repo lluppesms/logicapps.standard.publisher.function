@@ -1,0 +1,117 @@
+{
+	"info": {
+		"_postman_id": "f8bbf857-d5cd-4245-8533-2e315a2378ca",
+		"name": "Logic-App-Publisher - Local",
+		"description": "APIs in the Logic App Publisher project",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22346217"
+	},
+	"item": [
+		{
+			"name": "Refresh Workflow Pipeline",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:7118/api/TriggerRefreshPipeline",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7118",
+					"path": [
+						"api",
+						"TriggerRefreshPipeline"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Read GitHub User Info",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:7071/api/TriggerGitHubGetUserInfo",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "7071",
+					"path": [
+						"api",
+						"TriggerGitHubGetUserInfo"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GitHub Get List of Pull Requests",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:7071/api/TriggerGitHubGetPullRequests",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "7071",
+					"path": [
+						"api",
+						"TriggerGitHubGetPullRequests"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GitHub Approve Pull Request",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:7071/api/TriggerGitHubApprovePullRequest?id=45",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "7071",
+					"path": [
+						"api",
+						"TriggerGitHubApprovePullRequest"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "45"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GitHub Get First Pull Request",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:7071/api/TriggerGitHubGetFirstPullRequest",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "7071",
+					"path": [
+						"api",
+						"TriggerGitHubGetFirstPullRequest"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

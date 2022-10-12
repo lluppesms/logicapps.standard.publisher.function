@@ -11,7 +11,7 @@ public static class TriggerRefreshPipeline
         {
             if (settings.IsValid())
             {
-                var result = await PipelineFunctions.TriggerPipelineExecution(settings, log);
+                var result = await PipelineFunctions.RunPipeline(settings, log);
                 log.LogInformation($"Pipeline Execution Results: {settings.AzDoOrganization}/{settings.AzDoProject}/{settings.RefreshPipelineName}: {result}");
                 return result;
             }

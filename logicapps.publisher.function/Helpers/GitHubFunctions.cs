@@ -6,6 +6,7 @@ namespace LogicPublisher.Helpers;
 public static class GitHubFunctions
 {
     // See: https://octokitnet.readthedocs.io/en/latest/
+    // See: https://docs.github.com/en/rest/pulls/pulls#about-the-pulls-api
 
     public static async Task<string> GetUserInfo(AppSettings settings, ILogger log)
     {
@@ -42,8 +43,8 @@ public static class GitHubFunctions
             if (prList.Count > 0)
             {
                 var pr = prList.FirstOrDefault();
-                log.LogInformation($"Found Pull Request {pr.Id} : {pr.Title}");
-                var pullRequest = new GitHubPullRequest(pr.Id, pr.Title);
+                log.LogInformation($"Found Pull Request {pr.Number} : {pr.Title}");
+                var pullRequest = new GitHubPullRequest(pr.Number, pr.Title);
                 return pullRequest;
             }
             log.LogInformation($"No pull requests found for {settings.GitHubRepoName}");
@@ -70,7 +71,7 @@ public static class GitHubFunctions
             log.LogInformation($"Found {prList.Count} pull requests.");
             foreach (var item in prList)
             {
-                pullRequests.Add(new GitHubPullRequest(item.Id, item.Title));
+                pullRequests.Add(new GitHubPullRequest(item.Number, item.Title));
             }
             return pullRequests;
         }
@@ -79,6 +80,57 @@ public static class GitHubFunctions
             var errorMsg = $"Error fetching list of pull requests: {ex.Message}";
             log.LogError(errorMsg);
             return new List<GitHubPullRequest>();
+        }
+    }
+    public static async Task<PullRequestMerge> ApprovePullRequest(int pullRequestId, AppSettings settings, ILogger log)
+    {
+        var pullRequests = new List<GitHubPullRequest>();
+        try
+        {
+            var client = GetGitHubClient(settings, log);
+            if (client == null) return null;
+            var repo = await GetRepo(client, settings, log);
+            if (repo == null) return null;
+
+            var pullRequest = await client.PullRequest.Get(repo.Id, pullRequestId);
+            if (pullRequest == null) return null;
+
+            log.LogInformation($"Found Pull Request {pullRequest.Number} : {pullRequest.Title}");
+            var mergeComment = "Automated Merge";
+            var mpr = new MergePullRequest() { CommitTitle = mergeComment, MergeMethod = PullRequestMergeMethod.Squash };
+            var mergeResult = await client.PullRequest.Merge(repo.Id, pullRequest.Number, mpr);
+            if (mergeResult.Merged)
+            {
+                var head = pullRequest.Head;
+                var thisBranch = await client.Repository.Branch.Get(repo.Id, pullRequest.Head.Ref);
+                log.LogInformation($"Pull Request is using branch {thisBranch.Name}");
+                if (thisBranch != null)
+                {
+                    var headPath = $"heads/{thisBranch.Name}";
+                    log.LogInformation($"Deleting branch {headPath}");
+                    try
+                    {
+                       await client.Git.Reference.Delete(repo.Id, $"{headPath}");
+                       log.LogInformation($"Branch {thisBranch.Name} was deleted!");
+                    }
+                    catch (Exception ex)
+                    {
+                        var errorMsg = $"Error deleting branch heads/{thisBranch.Name}: {ex.Message}";
+                        log.LogError(errorMsg);
+                    }
+                }
+            }
+            else
+            {
+                log.LogInformation($"Pull Request {pullRequest.Id} merge failed!");
+            }
+            return mergeResult;
+        }
+        catch (Exception ex)
+        {
+            var errorMsg = $"Error approving pull request {pullRequestId}: {ex.Message}";
+            log.LogError(errorMsg);
+            return null;
         }
     }
 
