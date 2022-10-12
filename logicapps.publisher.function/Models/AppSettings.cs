@@ -12,10 +12,6 @@ public class AppSettings
 
     public AppSettings()
     {
-    }
-
-    public bool ReadSettings()
-    {
         if (string.IsNullOrEmpty(AzDoOrganization))
         {
             AzDoOrganization = Common.GetEnvironmentVariable("AzDoOrganization");
@@ -26,6 +22,15 @@ public class AppSettings
             GitHubUserName = Common.GetEnvironmentVariable("GitHubUserName");
             GitHubRepoName = Common.GetEnvironmentVariable("GitHubRepoName");
         }
-        return !string.IsNullOrEmpty(AzDoOrganization);
+    }
+    public bool IsValid()
+    {
+        return (!string.IsNullOrEmpty(AzDoOrganization) &&
+        !string.IsNullOrEmpty(AzDoPatToken) &&
+        !string.IsNullOrEmpty(AzDoProject) &&
+        !string.IsNullOrEmpty(RefreshPipelineName) &&
+        !string.IsNullOrEmpty(GitHubPatToken) &&
+        !string.IsNullOrEmpty(GitHubUserName) &&
+        !string.IsNullOrEmpty(GitHubRepoName));
     }
 }

@@ -2,27 +2,50 @@ namespace LogicPublisher;
 
 public static class TriggerGitHubProxy
 {
-    [FunctionName("TriggerGitHubProxy")]
-    public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, ILogger log)
+    [FunctionName("TriggerGitHubGetPullRequests")]
+    public static async Task<IActionResult> GetPullRequests([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, ILogger log)
     {
-        log.LogInformation("GitHub Proxy received an HTTP trigger.");
+        log.LogInformation("GitHub GetPullRequests received an HTTP trigger.");
         var settings = new AppSettings();
-        try
+        if (settings.IsValid())
         {
-            if (settings.ReadSettings())
-            {
-                var result = await GitHubFunctions.GetPullRequests(settings, log);
-                log.LogInformation($"GitHub Proxy Results: {settings.GitHubUserName}/{settings.GitHubRepoName}: {result}");
-                return new OkObjectResult(result);
+            var pullRequests = await GitHubFunctions.GetPullRequests(settings, log);
+            if (pullRequests != null) {
+                log.LogInformation($"GitHub GetPullRequests Found {pullRequests.Count} requests!");
+                return new OkObjectResult(pullRequests);
             }
-            log.LogError("GitHub Proxy Error: Error reading configuration!");
-            return new BadRequestResult();
         }
-        catch (Exception ex)
+        return new BadRequestResult();
+    }
+
+    [FunctionName("TriggerGitHubGetFirstPullRequest")]
+    public static async Task<IActionResult> GetFirstPullRequest([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, ILogger log)
+    {
+        log.LogInformation("GitHub UserInfo received an HTTP trigger.");
+        var settings = new AppSettings();
+        if (settings.IsValid())
         {
-            var errorMsg = $"GitHub Proxy Error: {settings.GitHubUserName}/{settings.GitHubRepoName}: {ex.Message}";
-            log.LogError(errorMsg);
-            return new BadRequestResult();
+            var pr = await GitHubFunctions.GetFirstPullRequest(settings, log);
+            if (pr != null)
+            {
+                log.LogInformation($"GitHub First Pull Request Results: {pr.Id} : {pr.Title}");
+                return new OkObjectResult(pr);
+            }
         }
+        return new BadRequestResult();
+    }
+
+    [FunctionName("TriggerGitHubGetUserInfo")]
+    public static async Task<IActionResult> GetUserInfo([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, ILogger log)
+    {
+        log.LogInformation("GitHub UserInfo received an HTTP trigger.");
+        var settings = new AppSettings();
+        if (settings.IsValid())
+        {
+            var result = await GitHubFunctions.GetUserInfo(settings, log);
+            log.LogInformation($"GitHub UserInfo Results: {result}");
+            return new OkObjectResult(result);
+        }
+        return new BadRequestResult();
     }
 }

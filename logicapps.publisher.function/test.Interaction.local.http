@@ -1,9 +1,28 @@
 # To use this file, install the VS Code extension Rest-Client 
 #   https://github.com/Huachao/vscode-restclient
 
-@baseUrl = http://localhost:7118/api
+@baseUrl = http://localhost:7071/api
 
-### Start Orchestration
-# @name startWorkRequest
+# ------------------------------------------------------------
+### Trigger Refresh Pipeline 
+# @name triggerRefreshPipeline
 
 POST {{baseUrl}}/TriggerRefreshPipeline HTTP/1.1
+
+# ------------------------------------------------------------
+### Get First Pull Request
+# @name getFirstPullRequest
+
+POST {{baseUrl}}/TriggerGitHubGetFirstPullRequest HTTP/1.1
+
+# ------------------------------------------------------------
+### Get List of Pull Requests
+# @name getPullRequests
+
+POST {{baseUrl}}/TriggerGitHubGetPullRequests HTTP/1.1
+
+# ------------------------------------------------------------
+### Start User Info
+# @name getUserInfo
+
+POST {{baseUrl}}/TriggerGitHubGetUserInfo HTTP/1.1

@@ -9,7 +9,7 @@ public static class TriggerRefreshPipeline
         var settings = new AppSettings();
         try
         {
-            if (settings.ReadSettings())
+            if (settings.IsValid())
             {
                 var result = await PipelineFunctions.TriggerPipelineExecution(settings, log);
                 log.LogInformation($"Pipeline Execution Results: {settings.AzDoOrganization}/{settings.AzDoProject}/{settings.RefreshPipelineName}: {result}");
