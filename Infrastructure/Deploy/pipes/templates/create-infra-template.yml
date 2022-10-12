@@ -65,6 +65,9 @@ jobs:
       echo "azDoPatToken $(azDoPatToken)"
       echo "azDoProject $(azDoProject)"
       echo "refreshPipelineName $(refreshPipelineName)"
+      echo "gitHubPatToken $(gitHubPatToken)"
+      echo "gitHubUserName $(gitHubUserName)"
+      echo "gitHubRepoName $(gitHubRepoName)"
       echo "runDateTime=$(runDateTime)"
       echo "templateFile=$(templateFile)"
     displayName: 'Display Variables'
@@ -109,6 +112,9 @@ jobs:
         -azDoPatToken $(azDoPatToken)
         -azDoProject $(azDoProject)
         -refreshPipelineName $(refreshPipelineName)
+        -gitHubPatToken $(gitHubPatToken)
+        -gitHubUserName $(gitHubUserName)
+        -gitHubRepoName $(gitHubRepoName)
         -runDateTime $(runDateTime)
       deploymentScope: 'Resource Group'
       azureResourceManagerConnection: '$(subscriptionName)'

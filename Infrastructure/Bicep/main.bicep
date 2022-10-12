@@ -24,6 +24,9 @@ param azDoOrganization string = ''
 param azDoPatToken string = ''
 param azDoProject string = ''
 param refreshPipelineName string = ''
+param gitHubPatToken string = ''
+param gitHubUserName string = ''
+param gitHubRepoName string = ''
 param runDateTime string = utcNow()
 
 // --------------------------------------------------------------------------------
@@ -136,11 +139,37 @@ module keyVaultSecret6 'keyvaultsecret.bicep' = {
     secretValue: refreshPipelineName
   }
 }
-
+module keyVaultSecret7 'keyvaultsecret.bicep' = {
+  name: 'keyVaultSecret7${deploymentSuffix}'
+  dependsOn: [ keyVaultModule, functionModule ]
+  params: {
+    keyVaultName: keyVaultModule.outputs.keyVaultName
+    secretName: 'GitHubPatToken'
+    secretValue: gitHubPatToken
+  }
+}
+module keyVaultSecret8 'keyvaultsecret.bicep' = {
+  name: 'keyVaultSecret8${deploymentSuffix}'
+  dependsOn: [ keyVaultModule, functionModule ]
+  params: {
+    keyVaultName: keyVaultModule.outputs.keyVaultName
+    secretName: 'GitHubUserName'
+    secretValue: gitHubUserName
+  }
+}
+module keyVaultSecret9 'keyvaultsecret.bicep' = {
+  name: 'keyVaultSecret9${deploymentSuffix}'
+  dependsOn: [ keyVaultModule, functionModule ]
+  params: {
+    keyVaultName: keyVaultModule.outputs.keyVaultName
+    secretName: 'GitHubRepoName'
+    secretValue: gitHubRepoName
+  }
+}
 
 module functionAppSettingsModule 'functionappsettings.bicep' = {
   name: 'functionAppSettings${deploymentSuffix}'
-  dependsOn: [ keyVaultSecret1, keyVaultSecret2, keyVaultSecret3, keyVaultSecret4, keyVaultSecret5, keyVaultSecret6, functionModule ]
+  dependsOn: [ keyVaultSecret1, keyVaultSecret2, keyVaultSecret3, keyVaultSecret4, keyVaultSecret5, keyVaultSecret6, keyVaultSecret7, keyVaultSecret8, keyVaultSecret9, functionModule ]
   params: {
     functionAppName: functionModule.outputs.functionAppName
     functionStorageAccountName: functionModule.outputs.functionStorageAccountName
@@ -150,6 +179,9 @@ module functionAppSettingsModule 'functionappsettings.bicep' = {
       AzDoPatToken: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=AzDoPatToken)'
       AzDoProject: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=AzDoProject)'
       RefreshPipelineName: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=RefreshPipelineName)'
+      GitHubPatToken: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=GitHubPatToken)'
+      GitHubUserName: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=GitHubUserName)'
+      GitHubRepoName: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=GitHubRepoName)'
     }
   }
 }
