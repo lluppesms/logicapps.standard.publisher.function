@@ -166,6 +166,15 @@ module keyVaultSecret9 'keyvaultsecret.bicep' = {
     secretValue: gitHubRepoName
   }
 }
+module keyVaultSecret10 'keyvaultsecretfunctionappkey.bicep' = {
+  name: 'keyVaultSecret10${deploymentSuffix}'
+  dependsOn: [ keyVaultModule, functionModule ]
+  params: {
+    keyVaultName: keyVaultModule.outputs.keyVaultName
+    keyName: 'PublishFunctionAppKey'
+    functionAppName: functionModule.name
+  }
+}
 
 module functionAppSettingsModule 'functionappsettings.bicep' = {
   name: 'functionAppSettings${deploymentSuffix}'
@@ -182,6 +191,7 @@ module functionAppSettingsModule 'functionappsettings.bicep' = {
       GitHubPatToken: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=GitHubPatToken)'
       GitHubUserName: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=GitHubUserName)'
       GitHubRepoName: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=GitHubRepoName)'
+      PublishFunctionAppKey: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=PublishFunctionAppKey)'
     }
   }
 }
