@@ -44,7 +44,7 @@ public static class GitHubFunctions
             {
                 var pr = prList.FirstOrDefault();
                 log.LogInformation($"Found Pull Request {pr.Number} : {pr.Title}");
-                var pullRequest = new GitHubPullRequest(pr.Number, pr.Title);
+                var pullRequest = new GitHubPullRequest(pr.Number, pr.Title, settings.GitHubUserName, settings.GitHubRepoName);
                 return pullRequest;
             }
             log.LogInformation($"No pull requests found for {settings.GitHubRepoName}");
@@ -71,7 +71,7 @@ public static class GitHubFunctions
             log.LogInformation($"Found {prList.Count} pull requests.");
             foreach (var item in prList)
             {
-                pullRequests.Add(new GitHubPullRequest(item.Number, item.Title));
+                pullRequests.Add(new GitHubPullRequest(item.Number, item.Title, settings.GitHubUserName, settings.GitHubRepoName));
             }
             return pullRequests;
         }
