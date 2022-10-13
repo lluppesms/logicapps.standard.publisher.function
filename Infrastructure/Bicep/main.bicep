@@ -172,7 +172,7 @@ module keyVaultSecret10 'keyvaultsecretfunctionappkey.bicep' = {
   params: {
     keyVaultName: keyVaultModule.outputs.keyVaultName
     keyName: 'PublishFunctionAppKey'
-    functionAppName: functionModule.name
+    functionAppName: functionModule.outputs.functionAppName
   }
 }
 
