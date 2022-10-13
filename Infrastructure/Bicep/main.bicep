@@ -130,15 +130,15 @@ module keyVaultSecret5 'keyvaultsecret.bicep' = {
     secretValue: azDoProject
   }
 }
-module keyVaultSecret6 'keyvaultsecret.bicep' = {
-  name: 'keyVaultSecret6${deploymentSuffix}'
-  dependsOn: [ keyVaultModule, functionModule ]
-  params: {
-    keyVaultName: keyVaultModule.outputs.keyVaultName
-    secretName: 'RefreshPipelineName'
-    secretValue: refreshPipelineName
-  }
-}
+// module keyVaultSecret6 'keyvaultsecret.bicep' = {
+//   name: 'keyVaultSecret6${deploymentSuffix}'
+//   dependsOn: [ keyVaultModule, functionModule ]
+//   params: {
+//     keyVaultName: keyVaultModule.outputs.keyVaultName
+//     secretName: 'RefreshPipelineName'
+//     secretValue: refreshPipelineName
+//   }
+// }
 module keyVaultSecret7 'keyvaultsecret.bicep' = {
   name: 'keyVaultSecret7${deploymentSuffix}'
   dependsOn: [ keyVaultModule, functionModule ]
@@ -178,7 +178,7 @@ module keyVaultSecret10 'keyvaultsecretfunctionappkey.bicep' = {
 
 module functionAppSettingsModule 'functionappsettings.bicep' = {
   name: 'functionAppSettings${deploymentSuffix}'
-  dependsOn: [ keyVaultSecret1, keyVaultSecret2, keyVaultSecret3, keyVaultSecret4, keyVaultSecret5, keyVaultSecret6, keyVaultSecret7, keyVaultSecret8, keyVaultSecret9, functionModule ]
+  dependsOn: [ keyVaultSecret1, keyVaultSecret2, keyVaultSecret3, keyVaultSecret4, keyVaultSecret5, keyVaultSecret7, keyVaultSecret8, keyVaultSecret9, functionModule ]
   params: {
     functionAppName: functionModule.outputs.functionAppName
     functionStorageAccountName: functionModule.outputs.functionStorageAccountName
@@ -187,7 +187,7 @@ module functionAppSettingsModule 'functionappsettings.bicep' = {
       AzDoOrganization: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=AzDoOrganization)'
       AzDoPatToken: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=AzDoPatToken)'
       AzDoProject: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=AzDoProject)'
-      RefreshPipelineName: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=RefreshPipelineName)'
+      RefreshPipelineName: refreshPipelineName
       GitHubPatToken: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=GitHubPatToken)'
       GitHubUserName: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=GitHubUserName)'
       GitHubRepoName: '@Microsoft.KeyVault(VaultName=${keyVaultModule.outputs.keyVaultName};SecretName=GitHubRepoName)'

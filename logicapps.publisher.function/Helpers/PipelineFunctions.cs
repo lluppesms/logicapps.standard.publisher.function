@@ -7,27 +7,27 @@ namespace LogicPublisher;
 
 public static class PipelineFunctions
 {
-    public static async Task<IActionResult> RunPipeline(AppSettings settings, ILogger log)
+    public static async Task<TriggerPipelineResult> RunPipeline(AppSettings settings, ILogger log)
     {
         log.LogInformation($"Starting PipelineExecution.TriggerPipeline for {settings.AzDoOrganization}/{settings.AzDoProject}/{settings.RefreshPipelineName}");
         try
         {
             (var success, var message, var project, var connection) = await GetProject(settings.AzDoOrganization, settings.AzDoPatToken, settings.AzDoProject, log);
-            if (!success) { return new BadRequestResult(); }
+            if (!success) { return new TriggerPipelineResult(false, $"Unable to find project {settings.AzDoProject}!"); }
 
             (success, message, var pipeline, var buildClient) = await GetPipeline(connection, project, settings.RefreshPipelineName, log);
-            if (!success) { return new BadRequestResult(); }
+            if (!success) { return new TriggerPipelineResult(false, $"Unable to find pipeline {settings.RefreshPipelineName}!"); }
 
-            (success, message) = await TriggerPipeline(project, buildClient, pipeline, log);
-            if (!success) { return new BadRequestResult(); }
+            (success, message, var buildNumber, var pipelineId) = await TriggerPipeline(project, buildClient, pipeline, log);
+            if (!success) { return new TriggerPipelineResult(false, $"Unable to trigger pipeline {settings.RefreshPipelineName}!"); }
 
-            return new OkObjectResult(message);
+            return new TriggerPipelineResult(true, message, buildNumber, pipelineId, settings.AzDoOrganization, settings.AzDoProject);
         }
         catch (Exception ex)
         {
             var errorMsg = ex.Message;
             log.LogError(errorMsg);
-            return new BadRequestResult();
+            return new TriggerPipelineResult(false, errorMsg);
         }
     }
 
@@ -132,7 +132,7 @@ public static class PipelineFunctions
         }
     }
 
-    public static async Task<(bool result, string message)> TriggerPipeline(TeamProjectReference project, BuildHttpClient buildClient, BuildDefinition pipeline, ILogger log)
+    public static async Task<(bool result, string message, string buildNumber, int pipelineId)> TriggerPipeline(TeamProjectReference project, BuildHttpClient buildClient, BuildDefinition pipeline, ILogger log)
     {
         var message = string.Empty;
         try
@@ -148,18 +148,18 @@ public static class PipelineFunctions
             {
                 message = $"Error submitting Pipeline Trigger for {pipeline.Name}!";
                 log.LogError(message);
-                return (false, message);
+                return (false, message, string.Empty, 0);
             }
 
             message = $"Pipeline Trigger returned Build Number: {response.BuildNumber}";
 
-            return (true, message);
+            return (true, message, response.BuildNumber, response.Id);
         }
         catch (Exception ex)
         {
             message = ex.Message;
             log.LogError(message);
-            return (false, message);
+            return (false, message, string.Empty, 0);
         }
     }
 }

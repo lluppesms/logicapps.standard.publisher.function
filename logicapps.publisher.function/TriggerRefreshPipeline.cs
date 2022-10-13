@@ -13,10 +13,10 @@ public static class TriggerRefreshPipeline
             {
                 var result = await PipelineFunctions.RunPipeline(settings, log);
                 log.LogInformation($"Pipeline Execution Results: {settings.AzDoOrganization}/{settings.AzDoProject}/{settings.RefreshPipelineName}: {result}");
-                return result;
+                return new OkObjectResult(result);
             }
             log.LogError("Pipeline Execution Error: Error reading configuration!");
-            return new BadRequestResult();
+            return new OkObjectResult(new ResultModel(false, "Invalid configuration!"));
         }
         catch (Exception ex)
         {
