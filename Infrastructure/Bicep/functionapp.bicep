@@ -1,20 +1,14 @@
 // ----------------------------------------------------------------------------------------------------
 // This BICEP file will create an Azure Function
 // ----------------------------------------------------------------------------------------------------
-// To deploy this Bicep manually:
-//   az deployment group create -n main-deploy-20220819T164900Z --resource-group rg_iotdemo_dev --template-file 'functionApp.bicep' --parameters orgPrefix=xxx environmentCode=dev appPrefix=iotdemo functionKind=functionapp functionStorageAccountName=xxxiotdemofuncdevstore
-// ----------------------------------------------------------------------------------------------------
-param orgPrefix string = 'org'
-param appPrefix string = 'app'
-@allowed(['design','dev','demo','qa','stg','prod'])
-param environmentCode string = 'demo'
-param appSuffix string = ''
+param functionAppName string = 'myfunctionname'
+param functionAppServicePlanName string = 'myfunctionappserviceplanname'
+param functionInsightsName string = 'myfunctioninsightsname'
+
 param location string = resourceGroup().location
 param appInsightsLocation string = resourceGroup().location
-param runDateTime string = utcNow()
-param templateFileName string = '~functionApp.bicep'
+param commonTags object = {}
 
-param functionName string = 'func'
 @allowed([ 'functionapp', 'functionapp,linux' ])
 param functionKind string = 'functionapp'
 param functionAppSku string = 'Y1'
@@ -22,46 +16,40 @@ param functionAppSkuFamily string = 'Y'
 param functionAppSkuTier string = 'Dynamic'
 param functionStorageAccountName string = ''
 
+@description('The workspace to store audit logs.')
+param workspaceId string = ''
+
 // --------------------------------------------------------------------------------
-var functionAppName = toLower('${orgPrefix}-${appPrefix}-${functionName}-${environmentCode}${appSuffix}')
-var appServicePlanName = toLower('${functionAppName}-appsvc')
-var functionInsightsName = toLower('${functionAppName}-insights')
+var templateTag = { TemplateFile: '~functionapp.bicep' }
+var azdTag = { 'azd-service-name': 'function' }
+var tags = union(commonTags, templateTag)
+var functionTags = union(commonTags, templateTag, azdTag)
 
 // --------------------------------------------------------------------------------
 resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' existing = { name: functionStorageAccountName }
-var functionStorageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountResource.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccountResource.id, storageAccountResource.apiVersion).keys[0].value}'
+var accountKey = storageAccountResource.listKeys().keys[0].value
+var functionStorageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccountResource.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${accountKey}'
 
 resource appInsightsResource 'Microsoft.Insights/components@2020-02-02-preview' = {
   name: functionInsightsName
   location: appInsightsLocation
   kind: 'web'
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   properties: {
     Application_Type: 'web'
     Request_Source: 'rest'
     //RetentionInDays: 90
     publicNetworkAccessForIngestion: 'Enabled'
     publicNetworkAccessForQuery: 'Enabled'
+    WorkspaceResourceId: workspaceId
   }
 }
 
 resource appServiceResource 'Microsoft.Web/serverfarms@2021-03-01' = {
-  name: appServicePlanName
+  name: functionAppServicePlanName
   location: location
   kind: functionKind
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: tags
   sku: {
     name: functionAppSku
     tier: functionAppSkuTier
@@ -85,13 +73,7 @@ resource functionAppResource 'Microsoft.Web/sites@2021-03-01' = {
   name: functionAppName
   location: location
   kind: functionKind
-  tags: {
-    LastDeployed: runDateTime
-    TemplateFile: templateFileName
-    Organization: orgPrefix
-    Application: appPrefix
-    Environment: environmentCode
-  }
+  tags: functionTags
   identity: {
     type: 'SystemAssigned'
   }
@@ -103,6 +85,10 @@ resource functionAppResource 'Microsoft.Web/sites@2021-03-01' = {
     hyperV: false
     siteConfig: {
       appSettings: [
+        {
+          name: 'AzureWebJobsDashboard'
+          value: functionStorageAccountConnectionString
+        }
         {
           name: 'AzureWebJobsStorage'
           value: functionStorageAccountConnectionString
@@ -131,22 +117,40 @@ resource functionAppResource 'Microsoft.Web/sites@2021-03-01' = {
           name: 'FUNCTIONS_EXTENSION_VERSION'
           value: '~4'
         }
+        {
+          name: 'WEBSITE_NODE_DEFAULT_VERSION'
+          value: '8.11.1'
+        }
       ]
       ftpsState: 'FtpsOnly'
       minTlsVersion: '1.2'
     }
-        scmSiteAlsoStopped: false
-        clientAffinityEnabled: false
-        clientCertEnabled: false
-        hostNamesDisabled: false
-        dailyMemoryTimeQuota: 0
-        httpsOnly: true
-        redundancyMode: 'None'
+    scmSiteAlsoStopped: false
+    clientAffinityEnabled: false
+    clientCertEnabled: false
+    hostNamesDisabled: false
+    dailyMemoryTimeQuota: 0
+    httpsOnly: true
+    redundancyMode: 'None'
+  }
+}
+
+resource functionAppConfig 'Microsoft.Web/sites/config@2018-11-01' = {
+  parent: functionAppResource
+  name: 'web'
+  properties: {
+    cors: {
+      allowedOrigins: [
+        'https://portal.azure.com'
+      ]
+      supportCredentials: false
+    }
   }
 }
 
 // resource functionAppConfig 'Microsoft.Web/sites/config@2018-11-01' = {
-//     name: '${functionAppResource.name}/web'
+//     parent: functionAppResource
+//     name: 'web'
 //     properties: {
 //         numberOfWorkers: -1
 //         defaultDocuments: [
@@ -231,9 +235,67 @@ resource functionAppResource 'Microsoft.Web/sites@2021-03-01' = {
 //     }
 // }
 
-output functionAppPrincipalId string = functionAppResource.identity.principalId
-output functionAppId string = functionAppResource.id
-output functionAppName string = functionAppName
-output functionInsightsName string = functionInsightsName
-output functionInsightsKey string = appInsightsResource.properties.InstrumentationKey
-output functionStorageAccountName string = functionStorageAccountName
+resource functionAppMetricLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${functionAppResource.name}-metrics'
+  scope: functionAppResource
+  properties: {
+    workspaceId: workspaceId
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+        // Note: Causes error: Diagnostic settings does not support retention for new diagnostic settings.
+        // retentionPolicy: {
+        //   days: 30
+        //   enabled: true 
+        // }
+      }
+    ]
+  }
+}
+
+// https://learn.microsoft.com/en-us/azure/app-service/troubleshoot-diagnostic-logs
+resource functionAppAuditLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${functionAppResource.name}-logs'
+  scope: functionAppResource
+  properties: {
+    workspaceId: workspaceId
+    logs: [
+      {
+        category: 'FunctionAppLogs'
+        enabled: true
+        // Note: Causes error: Diagnostic settings does not support retention for new diagnostic settings.
+        // retentionPolicy: {
+        //   days: 30
+        //   enabled: true 
+        // }
+      }
+    ]
+  }
+}
+resource appServiceMetricLogging 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${appServiceResource.name}-metrics'
+  scope: appServiceResource
+  properties: {
+    workspaceId: workspaceId
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+        // Note: Causes error: Diagnostic settings does not support retention for new diagnostic settings.
+        // retentionPolicy: {
+        //   days: 30
+        //   enabled: true 
+        // }
+      }
+    ]
+  }
+}
+
+// --------------------------------------------------------------------------------
+output principalId string = functionAppResource.identity.principalId
+output id string = functionAppResource.id
+output name string = functionAppName
+output insightsName string = functionInsightsName
+output insightsKey string = appInsightsResource.properties.InstrumentationKey
+output storageAccountName string = functionStorageAccountName

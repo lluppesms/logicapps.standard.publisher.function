@@ -1,45 +1,38 @@
 ﻿// --------------------------------------------------------------------------------
 // This BICEP file will create storage account
+// FYI: To purge a storage account with soft delete enabled: > az storage account purge --name storeName
 // --------------------------------------------------------------------------------
-param orgPrefix string = 'org'
-param appPrefix string = 'app'
-@allowed(['design','dev','demo','qa','stg','prod'])
-param environmentCode string = 'demo'
-param appSuffix string = '1'
+param storageAccountName string = 'mystorageaccountname'
 param location string = resourceGroup().location
-param runDateTime string = utcNow()
-param templateFileName string = '~storageAccount.bicep'
-param storageNameSuffix string = 'store'
+param commonTags object = {}
 
 @allowed([ 'Standard_LRS', 'Standard_GRS', 'Standard_RAGRS' ])
 param storageSku string = 'Standard_LRS'
+param storageAccessTier string = 'Hot'
+param containerNames array = ['input','output']
+@allowed(['Allow','Deny'])
+param allowNetworkAccess string = 'Allow'
 
 // --------------------------------------------------------------------------------
-var functionStorageName = toLower('${orgPrefix}${appPrefix}${environmentCode}${appSuffix}${storageNameSuffix}')
+var templateTag = { TemplateFile: '~storageAccount.bicep' }
+var tags = union(commonTags, templateTag)
 
 // --------------------------------------------------------------------------------
 resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' = {
-    name: functionStorageName
+    name: storageAccountName
     location: location
     sku: {
         name: storageSku
     }
-    tags: {
-        LastDeployed: runDateTime
-        TemplateFile: templateFileName
-        Organization: orgPrefix
-        Application: appPrefix
-        Environment: environmentCode
-    }
-    kind: 'Storage'
+    tags: tags
+    kind: 'StorageV2'
     properties: {
         networkAcls: {
             bypass: 'AzureServices'
-            virtualNetworkRules: [
-            ]
-            ipRules: [
-            ]
-            defaultAction: 'Allow'
+            defaultAction: allowNetworkAccess
+            ipRules: []
+            virtualNetworkRules: []
+            //virtualNetworkRules: ((virtualNetworkType == 'External') ? json('[{"id": "${subscription().id}/resourceGroups/${vnetResource}/providers/Microsoft.Network/virtualNetworks/${vnetResource.name}/subnets/${subnetName}"}]') : json('[]'))
         }
         supportsHttpsTrafficOnly: true
         encryption: {
@@ -55,11 +48,15 @@ resource storageAccountResource 'Microsoft.Storage/storageAccounts@2019-06-01' =
             }
             keySource: 'Microsoft.Storage'
         }
+        accessTier: storageAccessTier
+        allowBlobPublicAccess: false
+        minimumTlsVersion: 'TLS1_2'
     }
 }
 
 resource blobServiceResource 'Microsoft.Storage/storageAccounts/blobServices@2019-06-01' = {
-    name: '${storageAccountResource.name}/default'
+    parent: storageAccountResource
+    name: 'default'
     properties: {
         cors: {
             corsRules: [
@@ -72,4 +69,16 @@ resource blobServiceResource 'Microsoft.Storage/storageAccounts/blobServices@201
     }
 }
 
-output storageAccountName string = storageAccountResource.name
+resource containers 'Microsoft.Storage/storageAccounts/blobServices/containers@2019-06-01' = [for containerName in containerNames: {
+    name: '${containerName}'
+    parent: blobServiceResource
+    properties: {
+      publicAccess: 'None'
+      metadata: {}
+    }
+  }]
+
+
+// --------------------------------------------------------------------------------
+output id string = storageAccountResource.id
+output name string = storageAccountResource.name
